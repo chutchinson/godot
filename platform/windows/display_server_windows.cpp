@@ -235,7 +235,9 @@ void DisplayServerWindows::warp_mouse(const Point2i &p_position) {
 	WindowID window_id = _get_focused_window_or_popup();
 
 	if (!windows.has(window_id)) {
-		return; // No focused window?
+		// No focused window. Warp cursor to absolute coordinates on screen.
+		SetCursorPos(p_position.x, p_position.y);
+		return; 
 	}
 
 	if (mouse_mode == MOUSE_MODE_CAPTURED) {
@@ -245,7 +247,11 @@ void DisplayServerWindows::warp_mouse(const Point2i &p_position) {
 		POINT p;
 		p.x = p_position.x;
 		p.y = p_position.y;
-		ClientToScreen(windows[window_id].hWnd, &p);
+
+		if (!IsIconic(windows[window_id].hWnd)) {
+			// Map window coordinates to screen coordinates as long as window is not minimized.
+			ClientToScreen(windows[window_id].hWnd, &p);
+		}
 
 		SetCursorPos(p.x, p.y);
 	}
